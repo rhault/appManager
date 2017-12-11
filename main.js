@@ -1,12 +1,14 @@
 let fs = require("fs")
 let infoApp = ["Name" ] //"Exec", "Keywords"
-//let infoDesktop = {}
 
-function readDesktop(infoDesktop = {}){
-    let file = fs.readFileSync("./main.text", "utf-8")    
+//@desktop: path of the desktop file to read
+//@infoSearch: atribute of the desktop file to search []
+//@infoDesktop: return of the attribute sought {}
+function readAtrDesktop(desktop,infoSearch,infoDesktop = {}){
+    let file = fs.readFileSync(desktop, "utf-8")    
     let fileDesktop = file.split("\n").join()
     
-    infoApp.forEach(atr => {
+    infoSearch.forEach(atr => {
         let name = fileDesktop.indexOf(atr),
             igual = fileDesktop.indexOf("=", name),
             value = fileDesktop.indexOf(",", igual);
@@ -15,5 +17,5 @@ function readDesktop(infoDesktop = {}){
     
     return infoDesktop
 }
-
-console.log(readDesktop({"algo":"alfo"}))
+    
+console.log(readAtrDesktop("./main.text", infoApp))
