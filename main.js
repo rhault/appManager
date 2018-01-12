@@ -43,6 +43,20 @@ function findApplications(keyword, pathAppPlank="/usr/share/applications/"){
     return promise
 }
 
-findApplications("file").then( value => {
-    console.log(value)
-})
+//@pathHome: default, path of the directory home
+(function findFiles(pathHome){
+
+    let files = fs.readdirSync(pathHome)
+
+    files.forEach(file => {
+        if(file.indexOf(".") == 0) return     
+        
+        let stat = fs.lstatSync(path.join(pathHome,file))
+        if(stat.isDirectory()){                
+            console.log(file)
+            findFiles(path.join(pathHome,file))
+        }else{
+                
+        } 
+    })
+})(os.homedir())
