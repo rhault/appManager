@@ -6,8 +6,8 @@ let os = require("os")
 //@infoSearch: atribute of the desktop file to search []
 //@infoDesktop: return of the attribute sought {}
 function readAtrDesktop(desktop,infoSearch,infoDesktop = {}){
-    let file = fs.readFileSync(desktop, "utf-8")    
-    let fileDesktop = file.split("\n").join()
+    let readDesktop = fs.readFileSync(desktop, "utf-8")    
+    let fileDesktop = readDesktop.split("\n").join()
     
     infoSearch.forEach(atr => {
         let name = fileDesktop.indexOf(atr),
@@ -15,7 +15,6 @@ function readAtrDesktop(desktop,infoSearch,infoDesktop = {}){
             value = fileDesktop.indexOf(",", igual);
             infoDesktop[atr] = fileDesktop.slice(igual+1, value)
     })
-    
     return infoDesktop
 }
     
@@ -27,15 +26,16 @@ function findApplications(keyword, pathAppPlank="/usr/share/applications/"){
     let infoApp = ["Name", "Exec", "Keywords" ] 
     let promise = new Promise((resolve, reject) => {
         
-        fs.readdir(pathAppPlank, (err, dir) => {
+        fs.readdir(pathAppPlank, (err, files) => {
             if (err) reject(err)
             
-            let listApp = dir.filter(file => {
+            let listApp = files.filter(file => {
                 return path.extname(file) === ".desktop"
             }).map(file => {
                 return readAtrDesktop(path.join(pathAppPlank, file ),infoApp)
             }).filter(file => {
-                return file.Keywords.search(keyword) >= 1
+                return file.Name.toLowerCase().search(keyword) >= 0
+                
             })
             resolve(listApp)    
         })
@@ -44,19 +44,23 @@ function findApplications(keyword, pathAppPlank="/usr/share/applications/"){
 }
 
 //@pathHome: default, path of the directory home
-(function findFiles(pathHome){
-
-    let files = fs.readdirSync(pathHome)
-
-    files.forEach(file => {
-        if(file.indexOf(".") == 0) return     
+//@keywork: name of the a finding file
+//return a Json
+function findFiles(keyword, pathHome = os.homedir()){
+    
+    let readDir = fs.readdirSync(pathHome)
+    let allFile = []
+    readDir.forEach(files => {
+        if(files.indexOf(".") == 0) return 0 //ignore the file hidden
         
-        let stat = fs.lstatSync(path.join(pathHome,file))
+        let pathStat = path.join(pathHome,files)
+        let stat = fs.lstatSync(pathStat)
         if(stat.isDirectory()){                
-            console.log(file)
-            findFiles(path.join(pathHome,file))
-        }else{
-                
+            allFile = allFile.concat(findFiles(keyword, pathStat))
+        }
+        else if(files.indexOf(keyword) >= 0){
+                allFile.push({"name":files, "path":pathStat})
         } 
     })
-})(os.homedir())
+    return allFile
+}
